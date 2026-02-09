@@ -16,8 +16,8 @@ from .wrapper import Wrapper
 logger = logging.getLogger(__name__)
 
 # Constants
-BASE_PATH = "../../base_models"
-PEFT_PATH = "../../peft_models"
+BASE_PATH = "./base_models"
+PEFT_PATH = "./peft_models"
 BASE_MODEL_PATH = f"{BASE_PATH}/mistralai/Mistral-7B-v0.1"
 DEFAULT_BATCH_SIZE = 16
 MAX_LENGTH = 4096
