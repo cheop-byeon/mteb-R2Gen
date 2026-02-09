@@ -1,0 +1,11 @@
+{
+  "n_items_in_file": 37,
+  "valid_counts": {
+    "ContextRecall_mean_over_reference_sentences": 37,
+    "Faithfulness_mean_over_response_sentences": 37
+  },
+  "means": {
+    "ContextRecall_mean_over_reference_sentences": 0.7048791983574593,
+    "Faithfulness_mean_over_response_sentences": 0.6867329172747592
+  }
+}
