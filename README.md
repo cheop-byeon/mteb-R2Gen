@@ -23,7 +23,14 @@ Selected MTEB models are included, and our evaluation scripts are compatible wit
 ## Installation
 
 ```
-conda create -p path/to/conda_env --python 3.11
+module load Miniconda3/22.11.1-1
+export PS1=\$
+source ${EBROOTMINICONDA3}/etc/profile.d/conda.sh
+conda deactivate &>/dev/null
+echo "Conda environments: $(conda info --envs)"
+echo "EBROOTMINCONDA3: ${EBROOTMINICONDA3}"
+
+conda create -p path/to/conda_env python=3.11
 conda activate path/to/conda_env
 pip install -e .
 ```
