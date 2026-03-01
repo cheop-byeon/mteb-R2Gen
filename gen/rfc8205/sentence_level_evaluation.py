@@ -288,11 +288,13 @@ async def evaluate_query_by_sentence(
 # -------------------------
 async def main():
     parser = argparse.ArgumentParser(description="Sentence-level evaluation using RAGAS")
-    parser.add_argument("--model", type=str, required=True, help="Model name (e.g., qwen_non, llama_non)")
+    parser.add_argument("--model", type=str, required=True, help="Model name (e.g., jiebi/RFC-DRAlign-QN, jiebi/RFC-DRAlign-LN, bm25s)")
     args = parser.parse_args()
     
     model_name = args.model
-    results_path   = f"../results/stage1/test/c2i/rfc8205_{model_name}_default_predictions.json"
+    # Convert model name to path-safe format (replace "/" with "__")
+    model_path = model_name.replace("/", "__").replace(" ", "_")
+    results_path   = f"../results/stage1/test/c2i/{model_path}/rfc8205_default_predictions.json"
     query_path     = "./c2i/test/queries.jsonl"
     email_path     = "./c2i/test/corpus.386.no.head.jsonl"
     response_path  = f"./qa_data_{model_name}.jsonl"

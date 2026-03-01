@@ -57,11 +57,13 @@ Requirements:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate QA data using RAG and LLM")
-    parser.add_argument("--model", type=str, required=True, help="Model name (e.g., llama_non, qwen_verbose)")
+    parser.add_argument("--model", type=str, required=True, help="Retrieval Model (e.g., jiebi/RFC-DRAlign-LN, bm25s)")
     args = parser.parse_args()
     
     model = args.model
-    results_path = f'../results/stage1/test/c2i/rfc8205_{model}_default_predictions.json'
+    # Convert model name to path-safe format (replace "/" with "__")
+    model_path = model.replace("/", "__").replace(" ", "_")
+    results_path = f'../results/stage1/test/c2i/{model_path}/rfc8205_default_predictions.json'
     query_path = './c2i/test/queries.jsonl'
     corpus_path = './c2i/test/corpus.386.jsonl'
     top_k = 3
