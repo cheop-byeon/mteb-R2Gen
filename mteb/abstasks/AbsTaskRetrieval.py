@@ -275,12 +275,12 @@ class AbsTaskRetrieval(AbsTask):
             self.metadata = kwargs.get('metadata')
     
     @staticmethod
-    def _save_intermediate_results(output_folder: str, model: str, task: str, top_k: int, result_type: str, data: dict) -> None:
+    def _save_intermediate_results(output_folder: str, subfolder: str, task: str, top_k: int, result_type: str, data: dict) -> None:
         """Save intermediate evaluation results to JSON file.
         
         Args:
             output_folder: Output folder path (absolute or relative)
-            model: Model name for file organization
+            subfolder: Optional subfolder name within output folder
             task: Task name for file organization
             top_k: Top-k cutoff value
             result_type: Type of result ("mrr" or "hit")
@@ -288,7 +288,12 @@ class AbsTaskRetrieval(AbsTask):
         """
         # Convert to absolute path to avoid permission issues with relative paths
         output_folder_abs = os.path.abspath(output_folder)
-        file_path = f"{output_folder_abs}/{model}/{task}_{result_type}_{top_k}.json"
+        
+        # Build file path with optional subfolder
+        if subfolder:
+            file_path = f"{output_folder_abs}/{subfolder}/{task}_{result_type}_{top_k}.json"
+        else:
+            file_path = f"{output_folder_abs}/{task}_{result_type}_{top_k}.json"
         
         # Create parent directories if they don't exist
         os.makedirs(os.path.dirname(file_path), exist_ok=True)

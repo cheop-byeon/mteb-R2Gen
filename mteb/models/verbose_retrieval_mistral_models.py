@@ -181,8 +181,8 @@ def _create_model_meta(model_name: str, peft_model_path: str) -> ModelMeta:
 MODELS_CONFIG = {
     # Use the two Hugging Face repositories as PEFT checkpoints. The
     # revision will be resolved dynamically from the repo refs.
-    "jiebi_RFC_DRAlign_LV": "jiebi/RFC-DRAlign-LV",
-    "jiebi_RFC_DRAlign_QV": "jiebi/RFC-DRAlign-QV",
+    "jiebi/RFC-DRAlign-LV": "jiebi/RFC-DRAlign-LV",
+    "jiebi/RFC-DRAlign-QV": "jiebi/RFC-DRAlign-QV",
 }
 
 # Dynamically create models

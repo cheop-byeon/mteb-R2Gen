@@ -110,13 +110,16 @@ def main() -> int:
         task = create_retrieval_task(metadata)
         evaluation = mteb.MTEB(tasks=[task])
         
+        # Convert model name to path-safe format (replace "/" with "__")
+        model_path = args.model.replace("/", "__").replace(" ", "_")
+        
         evaluation.run(
             model,
             encode_kwargs={"batch_size": args.batch_size},
             top_k=top_k,
             output_folder=f"results/stage1/{args.split}/{args.direction}",
             save_predictions=True,
-            save_predictions_folder=f"{args.model}",
+            save_predictions_folder=model_path,
             output_type="all",
             overwrite_results=True,
         )

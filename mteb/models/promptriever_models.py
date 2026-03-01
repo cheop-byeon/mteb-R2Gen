@@ -14,6 +14,10 @@ from .wrapper import Wrapper
 
 logger = logging.getLogger(__name__)
 
+# Constants
+BASE_PATH = "./base_models"
+PEFT_PATH = "./peft_models"
+BASE_MODEL_PATH = f"{BASE_PATH}/mistralai/Mistral-7B-v0.1"
 
 class PromptrieverWrapper(RepLLaMAWrapper, Wrapper):
     def __init__(self, *args, **kwargs):
@@ -126,8 +130,8 @@ promptriever_llama3_instruct = ModelMeta(
 promptriever_mistral_v1 = ModelMeta(
     loader=_loader(
         RepLLaMAWrapper,
-        base_model_name_or_path="/cluster/work/users/jiebi/mistralai/Mistral-7B-v0.1",
-        peft_model_name_or_path="/cluster/work/users/jiebi/samaya-ai/promptriever-mistral-v0.1-7b-v1",
+        base_model_name_or_path=BASE_MODEL_PATH,
+        peft_model_name_or_path=f"{PEFT_PATH}/samaya-ai/promptriever-mistral-v0.1-7b-v1",
         device_map="auto",
         torch_dtype=torch.bfloat16,
         model_prompts=model_prompts,

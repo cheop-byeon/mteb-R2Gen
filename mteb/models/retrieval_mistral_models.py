@@ -191,8 +191,8 @@ def _create_model_meta(
 MODELS_CONFIG = {
     # Use the two Hugging Face repositories as PEFT checkpoints. The
     # revision will be resolved dynamically from the repo refs.
-    "jiebi_ids_c2i_dec": "jiebi/IDs-C2I-Dec",
-    "jiebi_ids_i2c_dec": "jiebi/IDs-I2C-Dec",
+    "jiebi/IDs-C2I-Dec": "jiebi/IDs-C2I-Dec",
+    "jiebi/IDs-I2C-Dec": "jiebi/IDs-I2C-Dec",
 }
 
 # Dynamically create model instances
