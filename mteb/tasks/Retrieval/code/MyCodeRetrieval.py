@@ -34,7 +34,7 @@ TASKS_CONFIG = [
     ("RustRetrieval", "rust", ["eng-Latn", "rust-Code"]),
     ("IDsRetrieval", "ids", ["eng-Latn"]),
     ("IDsSuppRetrieval", "ids-supp", ["eng-Latn"]),
-    ("RFCRetrieval", "rfc", ["eng-Latn"]),
+    ("RFCRetrieval", "rfcs", ["eng-Latn"]),
     ("RFC8335Retrieval", "rfc8335", ["eng-Latn"]),
     ("RFC7657Retrieval", "rfc7657", ["eng-Latn"]),
     ("RFC8205Retrieval", "rfc8205", ["eng-Latn"]),
