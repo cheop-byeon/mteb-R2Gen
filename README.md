@@ -12,14 +12,14 @@ The repository is organized into two main components:
 ### Information Retrieval (`ir/`)
 see **“Linking Rationale to Decision on Internet Standards: A Retrieval-Based Approach Using Synthetic Data.”**
 Implements retrieval-based approaches to connect rationales with technical decisions:
-- **i2c (issue-to-comments)**: Maps discussion threads (rationales/explanations) to decisions in standards
+- **i2c (issue/email comments to code/textual edit)**: Maps discussion threads (rationales/explanations) to decisions in standards
 
 These tasks leverage the IETF mail archives as a discussion base and RFC/Internet-Draft repositories as decision sources.
 
 ### Generation (`gen/`)
 see **“Beyond the Rules: Understanding the Design Logic of Internet Standards.”**  
 Implements retrieval-based approaches to connect rationales with technical decisions:
-- **c2i (code-to-issues)**: Retrieves relevant discussions for given technical decisions
+- **c2i (code/textual edit to issue/email comments)**: Retrieves relevant discussions for given technical decisions
 Extends the retrieval pipeline with a RAG (Retrieval-Augmented Generation) component that uses retrieved documents to generate coherent, context-aware explanations for design decisions.
 
 ## Technical Implementation
@@ -83,6 +83,31 @@ https://github.com/cheop-byeon/FlagEmbedding
 ## Synthetic Data Generation
 https://github.com/cheop-byeon/synthetic-data-kit
 
+
+## Evaluation
+
+To run evaluations on retrieval tasks:
+
+### Dense Embedding Models
+```bash
+# See evaluation.sh for comprehensive evaluation setup with all models and datasets
+# The script includes all available fine-tuned models (RFC-DRAlign, CodeConvo-based)
+sbatch evaluation.sh
+```
+
+### BM25 Baseline
+```bash
+# See bm25.sh for BM25-based retrieval evaluation
+sbatch bm25.sh
+```
+
+**Note**: Before running evaluations, download the datasets using:
+```bash
+python download_CodeConvo.py      # Download CodeConvo dataset
+python download_RFCAlign.py       # Download RFC-Align dataset
+```
+
+See [DATASET_PATH_USAGE.md](DATASET_PATH_USAGE.md) for detailed dataset download and path resolution instructions.
 
 ## Acknowledgements
 
