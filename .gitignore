@@ -144,35 +144,10 @@ test-mteb2.py
 check_*.py
 install_log.txt
 
-# Unrelated task types (keep only Retrieval, Reranking, InstructionRetrieval)
-mteb/tasks/BitextMining/
-mteb/tasks/Classification/
-mteb/tasks/Clustering/
-mteb/tasks/MultiLabelClassification/
-mteb/tasks/PairClassification/
-mteb/tasks/STS/
-mteb/tasks/Summarization/
-mteb/tasks/SpeedTask/
-
-# Unrelated abstractions
-mteb/abstasks/AbsTaskBitextMining.py
-mteb/abstasks/AbsTaskClassification.py
-mteb/abstasks/AbsTaskClustering.py
-mteb/abstasks/AbsTaskMultilabelClassification.py
-mteb/abstasks/AbsTaskPairClassification.py
-mteb/abstasks/AbsTaskSTS.py
-mteb/abstasks/AbsTaskSummarization.py
-mteb/abstasks/AbsTaskSpeedTask.py
-
-# Descriptive stats for unrelated tasks
-mteb/descriptive_stats/BitextMining/
-mteb/descriptive_stats/Classification/
-mteb/descriptive_stats/Clustering/
-mteb/descriptive_stats/MultiLabelClassification/
-mteb/descriptive_stats/PairClassification/
-mteb/descriptive_stats/STS/
-mteb/descriptive_stats/Summarization/
-mteb/descriptive_stats/SpeedTask/
-
 tests/
 docs/
+datasets/
+dataset/
+base_models/
+peft_models/
+descriptive_stats/
