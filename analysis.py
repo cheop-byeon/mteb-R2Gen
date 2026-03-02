@@ -13,7 +13,11 @@ def load_qrels(qrels_path: str) -> Dict[str, Dict[str, int]]:
     """Load qrels (ground truth relevance labels) from TSV file."""
     qrels = {}
     with open(qrels_path, 'r') as f:
-        for line in f:
+        lines = f.readlines()
+        # Skip header if first line contains 'query' or 'score'
+        start_idx = 1 if lines and ('query' in lines[0].lower() or 'score' in lines[0].lower()) else 0
+        
+        for line in lines[start_idx:]:
             line = line.strip()
             if not line:
                 continue
