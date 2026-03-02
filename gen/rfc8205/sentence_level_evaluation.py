@@ -288,7 +288,7 @@ async def evaluate_query_by_sentence(
 # -------------------------
 async def main():
     parser = argparse.ArgumentParser(description="Sentence-level evaluation using RAGAS")
-    parser.add_argument("--model", type=str, required=True, help="Model name (e.g., jiebi/RFC-DRAlign-QN, jiebi/RFC-DRAlign-LN, bm25s)")
+    parser.add_argument("--model", type=str, required=True, help="Retrieval Model (e.g., jiebi/RFC-DRAlign-QN, jiebi/RFC-DRAlign-LN, bm25s)")
     args = parser.parse_args()
     
     model_name = args.model
