@@ -10,12 +10,19 @@ def get_object_by_id(data, search_id):
     return next((item for item in data if item['_id'] == search_id), None)
 
 def load_qrels(qrels_path: str) -> Dict[str, Dict[str, int]]:
-    """Load qrels (ground truth relevance labels) from JSONL file."""
+    """Load qrels (ground truth relevance labels) from TSV file."""
     qrels = {}
     with open(qrels_path, 'r') as f:
         for line in f:
-            obj = json.loads(line)
-            qrels[obj['_id']] = {rel['_id']: rel['score'] for rel in obj.get('metadata', [])}
+            line = line.strip()
+            if not line:
+                continue
+            parts = line.split('\t')
+            if len(parts) >= 3:
+                query_id, doc_id, score = parts[0], parts[1], int(parts[2])
+                if query_id not in qrels:
+                    qrels[query_id] = {}
+                qrels[query_id][doc_id] = score
     return qrels
 
 def analyze_errors(model: str, dataset_name: str = "rfc8205", direction: str = "c2i", split: str = "test", top_k: int = 10):
@@ -35,7 +42,7 @@ def analyze_errors(model: str, dataset_name: str = "rfc8205", direction: str = "
     results_path = f'results/stage1/{split}/{direction}/{model_path}/{dataset_name}_default_predictions.json'
     query_path = f'ir/{dataset_name}/{direction}/{split}/queries.jsonl'
     corpus_path = f'ir/{dataset_name}/{direction}/{split}/corpus.jsonl'
-    qrels_path = f'ir/{dataset_name}/{direction}/{split}/qrels.jsonl'
+    qrels_path = f'ir/{dataset_name}/{direction}/{split}/qrels/{split}.tsv'
     
     # Verify all files exist
     missing_files = []
@@ -63,16 +70,8 @@ def analyze_errors(model: str, dataset_name: str = "rfc8205", direction: str = "
     with open(corpus_path, 'r') as f:
         corpus = [json.loads(line) for line in f]
     
-    with open(qrels_path, 'r') as f:
-        qrels = [json.loads(line) for line in f]
-    
-    # Build qrels dict: qid -> {docid -> relevance_score}
-    qrels_dict = {}
-    for qrel in qrels:
-        qrel_id = qrel['_id']
-        qrels_dict[qrel_id] = {}
-        for item in qrel.get('metadata', []):
-            qrels_dict[qrel_id][item['_id']] = item.get('score', 1)
+    # Load qrels from TSV file: qid -> {docid -> relevance_score}
+    qrels_dict = load_qrels(qrels_path)
     
     # Identify queries with HIT@k = 0
     error_cases = []
