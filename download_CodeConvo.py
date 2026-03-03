@@ -106,7 +106,7 @@ def download_dataset():
             repo_id=repo_id,
             repo_type="dataset",
             cache_dir="./dataset/.cache",
-            allow_patterns="*",  # Download all files
+            allow_patterns=["**/*.jsonl", "**/*.json", "**/*.tsv", "**/*.parquet"],  # Download all relevant data files recursively
         )
         
         print(f"✓ Download successful!")
