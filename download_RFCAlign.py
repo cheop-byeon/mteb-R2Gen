@@ -6,12 +6,11 @@ Uses huggingface_hub library for inspection and download
 from huggingface_hub import (
     list_repo_files,
     hf_hub_download,
-    snapshot_download
 )
-from datasets import load_dataset
 import os
+import shutil
 import traceback
-from pathlib import Path
+import argparse
 
 def examine_repo_structure():
     """Examine the structure of the dataset repository"""
@@ -69,8 +68,23 @@ def examine_repo_structure():
         return False
 
 
-def download_dataset():
-    """Download the dataset using appropriate Hugging Face method"""
+def _filter_files_for_request(files, split=None, topic=None):
+    """Filter repository files based on requested split/topic."""
+    if not split:
+        return files
+
+    split_prefix = f"{split}/"
+    filtered = [f for f in files if f.startswith(split_prefix)]
+
+    if topic:
+        wanted = f"{split}/{topic}.jsonl"
+        filtered = [f for f in filtered if f == wanted]
+
+    return filtered
+
+
+def download_dataset(split=None, topic=None):
+    """Download full RFCAlign dataset or a selected subset with real files."""
     print("\n" + "="*70)
     print("DOWNLOADING DATASET")
     print("="*70)
@@ -78,9 +92,15 @@ def download_dataset():
     repo_id = "jiebi/RFCAlign"
     local_dir = "./dataset/RFCAlign"
     
-    # Check for completion marker
-    completion_marker = os.path.join(local_dir, ".download_complete")
-    if os.path.exists(completion_marker):
+    # Scope-aware completion marker
+    if split:
+        scope = f"{split}_{topic or 'all'}"
+        completion_marker = os.path.join(local_dir, f".download_complete_{scope}")
+    else:
+        completion_marker = os.path.join(local_dir, ".download_complete")
+
+    # Backward compatibility for previous full download marker
+    if not split and os.path.exists(completion_marker):
         print("\n✓ Dataset already downloaded (completion marker found)")
         print(f"Location: {local_dir}")
         return True
@@ -88,94 +108,94 @@ def download_dataset():
     # Create parent directory
     os.makedirs("./dataset", exist_ok=True)
     
-    print(f"\nDownloading to: {local_dir}")
+    if split:
+        print(f"\nDownloading subset to: {local_dir}")
+        print(f"Requested split={split}, topic={topic or 'ALL'}")
+    else:
+        print(f"\nDownloading full dataset to: {local_dir}")
     print("-" * 70)
-    
+
     try:
-        # Method 1: Try snapshot_download with allow_patterns for better control
-        print("\n1. Attempting to download with snapshot_download()...")
-        print("   (This preserves the folder structure)")
-        
-        # Download to temporary cache location
-        path = snapshot_download(
-            repo_id=repo_id,
-            repo_type="dataset",
-            cache_dir="./dataset/.cache",
-            allow_patterns="*",  # Download all files
-        )
-        
-        print(f"✓ Download successful!")
-        print(f"Cache location: {path}")
-        
-        # Move files from cache to target directory (flatten structure)
-        print(f"\nMoving files to {local_dir}...")
-        import shutil
-        
-        # Remove target if it exists
-        if os.path.exists(local_dir):
-            shutil.rmtree(local_dir)
-        
-        # Move the downloaded folder to target location
-        shutil.move(path, local_dir)
-        print(f"✓ Moved to: {local_dir}")
-        
-        # Clean up cache directory
+        print("\nStep 1: Listing all files in repository...")
+        files = list_repo_files(repo_id=repo_id, repo_type="dataset")
+        print(f"✓ Found {len(files)} files")
+
+        skip_patterns = [".gitattributes", "README.md", ".huggingface"]
+        candidate_files = [f for f in files if not any(f.startswith(p) for p in skip_patterns)]
+        files_to_download = _filter_files_for_request(candidate_files, split=split, topic=topic)
+
+        if not files_to_download:
+            print("✗ No files matched the requested selection")
+            return False
+
+        print(f"  Will download {len(files_to_download)} files")
+
+        print("\nStep 2: Downloading files (actual file content, no symlink-only output)...")
+        downloaded_count = 0
+        failed_files = []
+
+        for i, file_path in enumerate(files_to_download, 1):
+            show_status = (i % 10 == 1) or (i == len(files_to_download))
+            try:
+                if show_status:
+                    print(f"  [{i}/{len(files_to_download)}] Downloading {file_path}...", end=" ", flush=True)
+
+                downloaded_path = hf_hub_download(
+                    repo_id=repo_id,
+                    filename=file_path,
+                    repo_type="dataset",
+                    cache_dir="./dataset/.cache",
+                    force_download=True,
+                    local_dir=local_dir,
+                )
+
+                if show_status:
+                    file_size = os.path.getsize(downloaded_path)
+                    size_str = f"{file_size/1024/1024:.1f}MB" if file_size > 1024*1024 else f"{file_size/1024:.1f}KB"
+                    print(f"✓ ({size_str})")
+
+                downloaded_count += 1
+            except Exception as file_error:
+                failed_files.append((file_path, str(file_error)[:120]))
+                if show_status:
+                    print("✗")
+
+        print(f"\n✓ Downloaded {downloaded_count}/{len(files_to_download)} files")
+
+        if failed_files:
+            print(f"⚠ {len(failed_files)} files failed to download:")
+            for fname, err in failed_files[:5]:
+                print(f"   - {fname}: {err}")
+            if len(failed_files) > 5:
+                print(f"   ... and {len(failed_files) - 5} more")
+
+        if downloaded_count == 0:
+            print("\n✗ No files were downloaded successfully")
+            return False
+
+        print("\nStep 3: Cleaning up cache...")
         cache_dir = "./dataset/.cache"
         if os.path.exists(cache_dir):
             shutil.rmtree(cache_dir)
-            print(f"✓ Cleaned up cache")
-        
-        # Create completion marker
+            print("✓ Cleaned up cache")
+
+        local_hf_meta_dir = os.path.join(local_dir, ".cache")
+        if os.path.exists(local_hf_meta_dir):
+            shutil.rmtree(local_hf_meta_dir)
+            print("✓ Cleaned up local HF metadata cache")
+
         os.makedirs(local_dir, exist_ok=True)
         with open(completion_marker, 'w') as f:
             f.write("Download completed successfully\n")
-        print(f"✓ Created completion marker")
-        
-        return True
-        
+        print("✓ Created completion marker")
+
+        return downloaded_count > 0
+
     except Exception as e:
-        print(f"\n✗ snapshot_download failed: {type(e).__name__}")
-        print(f"Message: {str(e)[:200]}")
-        
-        # Try alternative method
-        print("\n2. Attempting alternative: loading individual splits...")
-        print("-" * 70)
-        
-        try:
-            # Try loading splits individually
-            splits = ["train", "validation", "test"]
-            downloaded = []
-            
-            for split in splits:
-                try:
-                    print(f"\n   Loading split: {split}...", end=" ")
-                    data = load_dataset(repo_id, split=split, trust_remote_code=True)
-                    split_path = os.path.join(local_dir, split)
-                    data.save_to_disk(split_path)
-                    print(f"✓ ({len(data)} samples)")
-                    downloaded.append(split)
-                except Exception as split_error:
-                    print(f"✗ ({str(split_error)[:50]})")
-            
-            if downloaded:
-                print(f"\n✓ Successfully downloaded splits: {', '.join(downloaded)}")
-                
-                # Create completion marker
-                os.makedirs(local_dir, exist_ok=True)
-                with open(completion_marker, 'w') as f:
-                    f.write("Download completed successfully\n")
-                print(f"✓ Created completion marker")
-                
-                return True
-            else:
-                print("\n✗ No splits could be downloaded")
-                return False
-                
-        except Exception as alt_error:
-            print(f"\n✗ Alternative method also failed: {type(alt_error).__name__}")
-            print(f"Message: {str(alt_error)[:200]}")
-            traceback.print_exc()
-            return False
+        print(f"\n✗ Download failed: {type(e).__name__}")
+        print(f"Message: {str(e)}")
+        traceback.print_exc()
+        return False
 
 
 def show_downloaded_structure():
@@ -229,6 +249,39 @@ def show_downloaded_structure():
     print("\n" + "="*70)
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Inspect RFCAlign structure and download full dataset or a selected subset.",
+        epilog="Examples:\n"
+               "  # Inspect structure only\n"
+               "  python download_RFCAlign.py --no-download\n\n"
+               "  # Download everything\n"
+               "  python download_RFCAlign.py\n\n"
+               "  # Download one split folder only\n"
+               "  python download_RFCAlign.py --split qwen_verbose\n\n"
+               "  # Download one file only\n"
+               "  python download_RFCAlign.py --split qwen_verbose --topic ace\n",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "--split",
+        type=str,
+        choices=["llama_non-verbose", "llama_verbose", "qwen_non-verbose", "qwen_verbose"],
+        help="Top-level folder to download.",
+    )
+    parser.add_argument(
+        "--topic",
+        type=str,
+        help="Optional topic file name without .jsonl (requires --split).",
+    )
+    parser.add_argument(
+        "--no-download",
+        action="store_true",
+        help="Skip downloading files and only inspect local/remote structure.",
+    )
+    return parser.parse_args()
+
+
 def main():
     """Main execution function"""
     print("\n" + "="*70)
@@ -236,15 +289,22 @@ def main():
     print("Repository: https://huggingface.co/datasets/jiebi/RFCAlign")
     print("="*70)
     
+    args = parse_args()
+
+    if args.topic and not args.split:
+        print("\n✗ ERROR: --topic requires --split")
+        return False
+
     try:
         # Step 1: Examine repository
         if not examine_repo_structure():
             print("\n⚠ Could not examine repository, but attempting download anyway...")
         
-        # Step 2: Download dataset
-        if not download_dataset():
-            print("\n✗ Download failed!")
-            return False
+        # Step 2: Download dataset (full or filtered)
+        if not args.no_download:
+            if not download_dataset(split=args.split, topic=args.topic):
+                print("\n✗ Download failed!")
+                return False
         
         # Step 3: Show downloaded structure
         show_downloaded_structure()

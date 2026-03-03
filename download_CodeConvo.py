@@ -10,6 +10,7 @@ from huggingface_hub import (
 )
 from datasets import load_dataset
 import os
+import shutil
 import traceback
 from pathlib import Path
 import argparse
@@ -70,11 +71,36 @@ def examine_repo_structure():
         return False
 
 
-def download_dataset():
-    """Download the entire dataset from Hugging Face
-    
-    Dataset structure: repo/direction/split or train/{repo}/{direction}
-    Examples: kubernetes/i2c/test, train/ids/c2i
+def _filter_files_for_request(files, split=None, repo=None, direction=None):
+    """Filter repository files based on requested split/repo/direction."""
+    if not split:
+        return files
+
+    split = split.lower()
+
+    # --split train: download train/{direction}/...
+    if split == "train":
+        direction = direction or "c2i"
+        prefix = f"train/{direction}/"
+        return [f for f in files if f.startswith(prefix)]
+
+    # --split dev|test: download {repo}/{direction}/{split}/... and optional flat jsonl files
+    if split in ["dev", "test"]:
+        prefix = f"{repo}/{direction}/{split}/"
+        flat_jsonl_prefix = f"{repo}/{repo}.{direction}.{split}"
+        return [
+            f for f in files
+            if f.startswith(prefix) or f.startswith(flat_jsonl_prefix)
+        ]
+
+    return []
+
+
+def download_dataset(split=None, repo=None, direction=None):
+    """Download full dataset or a requested subset from Hugging Face.
+
+    Uses hf_hub_download() with force_download=True to ensure actual file download
+    (not symlinks or LFS pointers).
     """
     print("\n" + "="*70)
     print("DOWNLOADING DATASET")
@@ -83,9 +109,14 @@ def download_dataset():
     repo_id = "jiebi/CodeConvo"
     local_dir = "./dataset/CodeConvo"
     
-    # Check for completion marker
-    completion_marker = os.path.join(local_dir, ".download_complete")
-    if os.path.exists(completion_marker):
+    if split:
+        scope = f"{split}_{repo or 'all'}_{direction or 'default'}"
+        completion_marker = os.path.join(local_dir, f".download_complete_{scope}")
+    else:
+        completion_marker = os.path.join(local_dir, ".download_complete")
+
+    # Backward compatibility for previous full download marker
+    if not split and os.path.exists(completion_marker):
         print("\n✓ Dataset already downloaded (completion marker found)")
         print(f"Location: {local_dir}")
         return True
@@ -93,94 +124,109 @@ def download_dataset():
     # Create parent directory
     os.makedirs("./dataset", exist_ok=True)
     
-    print(f"\nDownloading entire dataset to: {local_dir}")
+    if split:
+        print(f"\nDownloading subset to: {local_dir}")
+        print(f"Requested split={split}, repo={repo or 'N/A'}, direction={direction or 'N/A'}")
+    else:
+        print(f"\nDownloading entire dataset to: {local_dir}")
     print("-" * 70)
     
     try:
-        # Try snapshot_download to get everything
-        print("\n1. Attempting to download with snapshot_download()...")
-        print("   (This preserves the folder structure)")
+        # Step 1: List all files in the repository
+        print("\nStep 1: Listing all files in repository...")
+        files = list_repo_files(repo_id=repo_id, repo_type="dataset")
+        print(f"✓ Found {len(files)} files")
         
-        # Download to temporary cache location
-        path = snapshot_download(
-            repo_id=repo_id,
-            repo_type="dataset",
-            cache_dir="./dataset/.cache",
-            allow_patterns=["**/*.jsonl", "**/*.json", "**/*.tsv", "**/*.parquet"],  # Download all relevant data files recursively
+        # Filter out certain non-essential files
+        skip_patterns = ['.gitattributes', 'README.md', '.huggingface']
+        candidate_files = [f for f in files if not any(f.startswith(p) for p in skip_patterns)]
+        files_to_download = _filter_files_for_request(
+            candidate_files,
+            split=split,
+            repo=repo,
+            direction=direction,
         )
+
+        if not files_to_download:
+            print("✗ No files matched the requested selection")
+            return False
+
+        print(f"  Will download {len(files_to_download)} files (after filtering)")
         
-        print(f"✓ Download successful!")
-        print(f"Cache location: {path}")
+        # Step 2: Download each file individually with force_download=True
+        print("\nStep 2: Downloading files (this may take a while)...")
+        downloaded_count = 0
+        failed_files = []
         
-        # Move files from cache to target directory (flatten structure)
-        print(f"\nMoving files to {local_dir}...")
-        import shutil
+        for i, file_path in enumerate(files_to_download, 1):
+            try:
+                # Show progress every 10 files
+                if i % 10 == 1 or i == len(files_to_download):
+                    print(f"  [{i}/{len(files_to_download)}] Downloading {file_path}...", end=" ", flush=True)
+                    show_status = True
+                else:
+                    show_status = False
+                
+                # Download file with force_download=True to ensure actual download
+                downloaded_path = hf_hub_download(
+                    repo_id=repo_id,
+                    filename=file_path,
+                    repo_type="dataset",
+                    cache_dir="./dataset/.cache",
+                    force_download=True,  # Force actual download, not symlinks
+                    force_filename=None
+                )
+                
+                # Create target directory structure
+                target_file = os.path.join(local_dir, file_path)
+                os.makedirs(os.path.dirname(target_file), exist_ok=True)
+                
+                # Copy downloaded file to target location
+                import shutil
+                shutil.copy2(downloaded_path, target_file)
+                
+                if show_status:
+                    file_size = os.path.getsize(target_file)
+                    size_str = f"{file_size/1024/1024:.1f}MB" if file_size > 1024*1024 else f"{file_size/1024:.1f}KB"
+                    print(f"✓ ({size_str})")
+                
+                downloaded_count += 1
+                
+            except Exception as file_error:
+                failed_files.append((file_path, str(file_error)[:50]))
+                if show_status:
+                    print(f"✗")
         
-        # Remove target if it exists
-        if os.path.exists(local_dir):
-            shutil.rmtree(local_dir)
+        print(f"\n✓ Downloaded {downloaded_count}/{len(files_to_download)} files")
         
-        # Move the downloaded folder to target location
-        shutil.move(path, local_dir)
-        print(f"✓ Moved to: {local_dir}")
+        if failed_files:
+            print(f"⚠ {len(failed_files)} files failed to download:")
+            for fname, error in failed_files[:5]:
+                print(f"   - {fname}: {error}")
+            if len(failed_files) > 5:
+                print(f"   ... and {len(failed_files) - 5} more")
         
-        # Clean up cache directory
+        # Step 3: Clean up cache directory
+        print("\nStep 3: Cleaning up cache...")
         cache_dir = "./dataset/.cache"
         if os.path.exists(cache_dir):
+            import shutil
             shutil.rmtree(cache_dir)
-            print(f"✓ Cleaned up cache")
+            print("✓ Cleaned up cache")
         
-        # Create completion marker
+        # Step 4: Create completion marker
         os.makedirs(local_dir, exist_ok=True)
         with open(completion_marker, 'w') as f:
             f.write("Download completed successfully\n")
         print(f"✓ Created completion marker")
         
-        return True
+        return downloaded_count > 0
         
     except Exception as e:
-        print(f"\n✗ snapshot_download failed: {type(e).__name__}")
-        print(f"Message: {str(e)[:200]}")
-        
-        # Try alternative method
-        print("\n2. Attempting alternative: loading individual splits...")
-        print("-" * 70)
-        
-        try:
-            # Try loading splits individually
-            splits = ["train", "dev", "test"]
-            downloaded = []
-            
-            for split in splits:
-                try:
-                    print(f"\n   Loading split: {split}...", end=" ")
-                    data = load_dataset(repo_id, split=split, trust_remote_code=True)
-                    split_path = os.path.join(local_dir, split)
-                    data.save_to_disk(split_path)
-                    print(f"✓ ({len(data)} samples)")
-                    downloaded.append(split)
-                except Exception as split_error:
-                    print(f"✗ ({str(split_error)[:50]})")
-            
-            if downloaded:
-                print(f"\n✓ Successfully downloaded splits: {', '.join(downloaded)}")
-                
-                # Create completion marker
-                os.makedirs(local_dir, exist_ok=True)
-                with open(completion_marker, 'w') as f:
-                    f.write("Download completed successfully\n")
-                print(f"✓ Created completion marker")
-                
-                return True
-            else:
-                print("\n✗ No splits could be downloaded")
-                return False
-                
-        except Exception as alt_error:
-            print(f"\n✗ Alternative method also failed: {type(alt_error).__name__}")
-            print(f"Message: {str(alt_error)[:200]}")
-            traceback.print_exc()
-            return False
+        print(f"\n✗ Download failed: {type(e).__name__}")
+        print(f"Message: {str(e)}")
+        traceback.print_exc()
+        return False
 
 
 def show_downloaded_structure():
@@ -275,14 +321,16 @@ def resolve_data_path(base_dir, split=None, repo=None, direction=None):
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Download entire CodeConvo dataset and resolve specific data paths.",
+        description="Inspect CodeConvo structure and download full dataset or a selected subset.",
         epilog="Examples:\n"
+               "  # Inspect structure only\n"
+               "  python download_CodeConvo.py --no-download\n\n"
                "  # Download entire dataset\n"
                "  python download_CodeConvo.py\n\n"
-               "  # Download and get train data path (defaults to c2i)\n"
+               "  # Download only train files (defaults to c2i)\n"
                "  python download_CodeConvo.py --split train\n"
                "  python download_CodeConvo.py --split train --direction i2c\n\n"
-               "  # Download and get dev/test path (requires --repo and --direction)\n"
+               "  # Download only dev/test files (requires --repo and --direction)\n"
                "  python download_CodeConvo.py --split test --repo kubernetes --direction i2c\n",
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
@@ -306,7 +354,7 @@ def parse_args():
     parser.add_argument(
         "--no-download",
         action="store_true",
-        help="Skip download and only resolve folder path.",
+        help="Skip downloading files and only inspect/resolve folder path.",
     )
     return parser.parse_args()
 
@@ -342,9 +390,13 @@ def main():
         if not examine_repo_structure():
             print("\n⚠ Could not examine repository, but attempting download anyway...")
 
-        # Step 2: Download entire dataset (unless skipped)
+        # Step 2: Download full dataset or requested subset (unless skipped)
         if not args.no_download:
-            if not download_dataset():
+            if not download_dataset(
+                split=args.split,
+                repo=args.repo,
+                direction=args.direction,
+            ):
                 print("\n✗ Download failed!")
                 return False
 

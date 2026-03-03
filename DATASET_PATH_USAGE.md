@@ -8,6 +8,15 @@
 python download_CodeConvo.py
 ```
 
+### Download Whole Repository with `huggingface-cli`
+```bash
+# Install CLI (if needed)
+pip install -U "huggingface_hub[cli]"
+
+# Download full CodeConvo repository to local folder
+huggingface-cli download jiebi/CodeConvo --repo-type dataset --local-dir ./dataset/CodeConvo
+```
+
 ### Path Resolution Examples
 
 **Train split** (structure: `train/{direction}/`)
@@ -54,7 +63,68 @@ python download_CodeConvo.py --split test --repo ids --direction c2i --no-downlo
 python download_RFCAlign.py
 ```
 
+### Download Whole Repository with `huggingface-cli`
+```bash
+# Install CLI (if needed)
+pip install -U "huggingface_hub[cli]"
+
+# Download full RFCAlign repository to local folder
+huggingface-cli download jiebi/RFCAlign --repo-type dataset --local-dir ./dataset/RFCAlign
+```
+
+### Parameter Options
+
+```bash
+python download_RFCAlign.py [--split <value>] [--topic <value>] [--no-download]
+```
+
+#### `--split`
+Top-level folder to download.
+
+Allowed values:
+- `llama_non-verbose`
+- `llama_verbose`
+- `qwen_non-verbose`
+- `qwen_verbose`
+
+#### `--topic`
+Optional topic file name **without** `.jsonl`.
+
+Rules:
+- Must be used together with `--split`
+- Downloads only one file: `<split>/<topic>.jsonl`
+
+Examples:
+- `--topic ace`
+- `--topic quic`
+- `--topic tls`
+
+#### `--no-download`
+Inspect remote repository structure and local folder tree only.
+No files are downloaded.
+
+### Usage Examples
+
+```bash
+# 1) Inspect only (no download)
+python download_RFCAlign.py --no-download
+
+# 2) Download full RFCAlign dataset
+python download_RFCAlign.py
+
+# 3) Download one split folder only
+python download_RFCAlign.py --split qwen_verbose
+
+# 4) Download one specific file only
+python download_RFCAlign.py --split qwen_verbose --topic ace
+
+# 5) Another one-file download example
+python download_RFCAlign.py --split llama_non-verbose --topic tls
+```
+
 ### Notes
-- RFCAlign downloads the complete dataset to `./dataset/RFCAlign/`
-- No path resolution options (entire dataset is downloaded at once)
-- Structure includes verbose/non-verbose variants of query/passage pairs
+- Download target directory: `./dataset/RFCAlign/`
+- Full download: all available files under all split folders
+- Split download: only files under selected split
+- Split + topic download: only one `.jsonl` file
+- Files are downloaded with actual content (not fake 1B pointers)
