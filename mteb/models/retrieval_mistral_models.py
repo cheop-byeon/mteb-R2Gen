@@ -193,6 +193,10 @@ MODELS_CONFIG = {
     # revision will be resolved dynamically from the repo refs.
     "jiebi/IDs-C2I-Dec": "jiebi/IDs-C2I-Dec",
     "jiebi/IDs-I2C-Dec": "jiebi/IDs-I2C-Dec",
+    "jiebi/Kubernetes-C2I-Dec": "jiebi/Kubernetes-C2I-Dec",
+    "jiebi/Kubernetes-I2C-Dec": "jiebi/Kubernetes-I2C-Dec",
+    "jiebi/SIGIR-C2I-Dec": "jiebi/SIGIR-C2I-Dec",
+    "jiebi/SIGIR-I2C-Dec": "jiebi/SIGIR-I2C-Dec",
 }
 
 # Dynamically create model instances
