@@ -13,6 +13,9 @@ from mteb.models.rerankers_custom import RerankerWrapper, _loader
 logger = logging.getLogger(__name__)
 logging.getLogger().setLevel(logging.INFO)
 
+# Constants
+BASE_PATH = "./base_models"
+
 #local_rank = int(os.environ["LOCAL_RANK"])
 #torch.cuda.set_device(local_rank)
 #dist.init_process_group(backend="nccl")
@@ -504,7 +507,7 @@ mistral_7b = ModelMeta(
     loader=partial(  # type: ignore
         _loader,
         wrapper=MistralReranker,
-        model_name_or_path="/cluster/work/users/jiebi/mistralai/Mistral-7B-Instruct-v0.2",
+        model_name_or_path=f"{BASE_PATH}/mistralai/Mistral-7B-Instruct-v0.2",
         fp_options="float16",
         device_map="auto",
     ),
@@ -519,7 +522,7 @@ llama_8b = ModelMeta(
     loader=partial(  # type: ignore
         _loader,
         wrapper=LlamaReranker,
-        model_name_or_path="/cluster/work/users/jiebi/meta-llama/Llama-3.1-8B-Instruct",
+        model_name_or_path=f"{BASE_PATH}/meta-llama/Llama-3.1-8B-Instruct",
         fp_options="float16",
         device_map="auto",
     ),
@@ -534,7 +537,7 @@ qwen_72b = ModelMeta(
     loader=partial(  # type: ignore
         _loader,
         wrapper=QwenReranker,
-        model_name_or_path="/cluster/work/users/jiebi/Qwen/Qwen2.5-72B-Instruct",
+        model_name_or_path=f"{BASE_PATH}/Qwen/Qwen2.5-72B-Instruct",
         fp_options="bfloat16",
     ),
     name="Qwen/Qwen2.5-72B-Instruct",
@@ -548,7 +551,7 @@ qwen_32b = ModelMeta(
     loader=partial(  # type: ignore
         _loader,
         wrapper=QwenReranker,
-        model_name_or_path="/cluster/work/users/jiebi/Qwen/Qwen2.5-32B-Instruct",
+        model_name_or_path=f"{BASE_PATH}/Qwen/Qwen2.5-32B-Instruct",
         fp_options="bfloat16",
     ),
     name="Qwen/Qwen2.5-32B-Instruct",
@@ -562,7 +565,7 @@ qwen_14b = ModelMeta(
     loader=partial(  # type: ignore
         _loader,
         wrapper=QwenReranker,
-        model_name_or_path="/cluster/work/users/jiebi/Qwen/Qwen2.5-14B-Instruct",
+        model_name_or_path=f"{BASE_PATH}/Qwen/Qwen2.5-14B-Instruct",
         fp_options="bfloat16",
     ),
     name="Qwen/Qwen2.5-14B-Instruct",
@@ -576,7 +579,7 @@ qwen_7b = ModelMeta(
     loader=partial(  # type: ignore
         _loader,
         wrapper=QwenReranker,
-        model_name_or_path="/cluster/work/users/jiebi/Qwen/Qwen2.5-7B-Instruct",
+        model_name_or_path=f"{BASE_PATH}/Qwen/Qwen2.5-7B-Instruct",
         fp_options="bfloat16",
     ),
     name="Qwen/Qwen2.5-7B-Instruct",
@@ -590,7 +593,7 @@ qwq_32b = ModelMeta(
     loader=partial(  # type: ignore
         _loader,
         wrapper=QwenReranker,
-        model_name_or_path="/cluster/work/users/jiebi/Qwen/QwQ-32B",
+        model_name_or_path=f"{BASE_PATH}/Qwen/QwQ-32B",
         fp_options="bfloat16",
     ),
     name="Qwen/QwQ-32B",
@@ -604,7 +607,7 @@ rank1_32b = ModelMeta(
     loader=partial(  # type: ignore
         _loader,
         wrapper=QwenReranker,
-        model_name_or_path="/cluster/work/users/jiebi/jhu-clsp/rank1-32b",
+        model_name_or_path=f"{BASE_PATH}/jhu-clsp/rank1-32b",
         fp_options="bfloat16",
     ),
     name="jhu-clsp/rank1-32b",
@@ -618,7 +621,7 @@ rank1_14b = ModelMeta(
     loader=partial(  # type: ignore
         _loader,
         wrapper=QwenReranker,
-        model_name_or_path="/cluster/work/users/jiebi/jhu-clsp/rank1-14b",
+        model_name_or_path=f"{BASE_PATH}/jhu-clsp/rank1-14b",
         fp_options="bfloat16",
     ),
     name="jhu-clsp/rank1-14b",
@@ -632,7 +635,7 @@ rank1_7b = ModelMeta(
     loader=partial(  # type: ignore
         _loader,
         wrapper=QwenReranker,
-        model_name_or_path="/cluster/work/users/jiebi/jhu-clsp/rank1-7b",
+        model_name_or_path=f"{BASE_PATH}/jhu-clsp/rank1-7b",
         fp_options="bfloat16",
     ),
     name="jhu-clsp/rank1-7b",
@@ -646,7 +649,7 @@ nvidia_49b = ModelMeta(
     loader=partial(  # type: ignore
         _loader,
         wrapper=QwenReranker,
-        model_name_or_path="/cluster/work/users/jiebi/nvidia/Llama-3_3-Nemotron-Super-49B-v1",
+        model_name_or_path=f"{BASE_PATH}/nvidia/Llama-3_3-Nemotron-Super-49B-v1",
         fp_options="bfloat16",
     ),
     name="nvidia/Llama-3_3-Nemotron-Super-49B-v1",

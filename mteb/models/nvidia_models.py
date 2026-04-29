@@ -15,6 +15,8 @@ from mteb.models.sentence_transformer_wrapper import SentenceTransformerWrapper
 
 logger = logging.getLogger(__name__)
 
+# Constants
+BASE_PATH = "./base_models"
 
 def instruction_template(
     instruction: str, prompt_type: PromptType | None = None
@@ -75,7 +77,7 @@ class NvEmbedWrapper(SentenceTransformerWrapper):
 NV_embed_v2 = ModelMeta(
     loader=partial(  # type: ignore
         NvEmbedWrapper,
-        model="/cluster/work/users/jiebi/nvidia/NV-Embed-v2",
+        model=f"{BASE_PATH}/nvidia/NV-Embed-v2",
         trust_remote_code=True,
     ),
     name="nvidia/NV-Embed-v2",
@@ -97,7 +99,7 @@ NV_embed_v2 = ModelMeta(
 NV_llama_8b = ModelMeta(
     loader=partial(  # type: ignore
         NvEmbedWrapper,
-        model="/cluster/work/users/jiebi/nvidia/Llama-3.1-Nemotron-Nano-8B-v1",
+        model=f"{BASE_PATH}/nvidia/Llama-3.1-Nemotron-Nano-8B-v1",
         trust_remote_code=True,
     ),
     name="nvidia/Llama-3.1-Nemotron-Nano-8B-v1",
@@ -141,7 +143,7 @@ NV_embed_v1 = ModelMeta(
 reason_ir_8b = ModelMeta(
     loader=partial(  # type: ignore
         NvEmbedWrapper,
-        model="/cluster/work/users/jiebi/reasonir/ReasonIR-8B",
+        model=f"{BASE_PATH}/reasonir/ReasonIR-8B",
         trust_remote_code=True,
         torch_dtype=torch.bfloat16,
     ),
@@ -164,7 +166,7 @@ reason_ir_8b = ModelMeta(
 qwen_ir_7b = ModelMeta(
     loader=partial(  # type: ignore
         NvEmbedWrapper,
-        model="/cluster/work/users/jiebi/Qwen/Qwen2.5-7B",
+        model=f"{BASE_PATH}/Qwen/Qwen2.5-7B",
         trust_remote_code=True,
     ),
     name="Qwen/Qwen2.5-7B",
