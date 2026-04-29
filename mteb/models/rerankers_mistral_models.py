@@ -16,6 +16,9 @@ logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
 
 # Constants
+BASE_PATH = "./base_models"
+PEFT_PATH = "./peft_models"
+
 BASE_REVISION = "7231864981174d9bee8c7687c24c8344414eae6b"
 RELEASE_DATE = "2024-09-15"
 DEVICE_MAP = "auto"
@@ -138,8 +141,8 @@ def _create_model_meta(
     """Factory function to create ModelMeta instances for reranker models."""
     return ModelMeta(
         loader=lambda: CustomMistralReranker(
-            base_model_name_or_path=base_model_path,
-            peft_model_name_or_path=peft_checkpoint,
+            base_model_name_or_path=f"{BASE_PATH}/{base_model_path}",
+            peft_model_name_or_path=f"{PEFT_PATH}/{peft_checkpoint}",
             device_map=DEVICE_MAP,
             fp_options=FP_OPTIONS,
         ),
@@ -153,14 +156,11 @@ def _create_model_meta(
 
 # Configuration dictionary for all reranker models
 MODELS_CONFIG = {
-    ("reranker_mistral_i2c", "mistralai/Mistral-7B-Instruct-v0.2", "/cluster/projects/nn9851k/jiebi/FlagEmbedding/examples/finetune/reranker/decoder_only/decoder_only_base_mistralai_Mistral-7B-instruction-v0.2/i2c/checkpoint-788/"),
-    ("reranker_mistral_c2i", "mistralai/Mistral-7B-Instruct-v0.2", "/cluster/projects/nn9851k/jiebi/FlagEmbedding/examples/finetune/reranker/decoder_only/decoder_only_base_mistralai_Mistral-7B-instruction-v0.2/c2i/checkpoint-2208"),
-    ("reranker_mistral7b_i2c_ids", "/cluster/work/users/jiebi/mistralai/Mistral-7B-Instruct-v0.2", "/cluster/work/users/jiebi/FlagEmbedding/examples/finetune/reranker/decoder_only/decoder_only_base_mistralai_Mistral-7B-Instruct-v0.2/i2c/checkpoint-131"),
-    ("reranker_llama8b_i2c_ids", "/cluster/work/users/jiebi/meta-llama/Llama-3.1-8B-Instruct", "/cluster/work/users/jiebi/FlagEmbedding/examples/finetune/reranker/decoder_only/decoder_only_base_meta-llama_llama_8b/i2c/checkpoint-131"),
-    ("reranker_rank17b_i2c_ids", "/cluster/work/users/jiebi/jhu-clsp/rank1-7b", "/cluster/work/users/jiebi/FlagEmbedding/examples/finetune/reranker/decoder_only/decoder_only_base_jhu-clsp_rank1_7b/i2c/checkpoint-131"),
-    ("reranker_qwen7b_i2c_ids", "/cluster/work/users/jiebi/Qwen/Qwen2.5-7B-Instruct", "/cluster/work/users/jiebi/FlagEmbedding/examples/finetune/reranker/decoder_only/decoder_only_base_Qwen-Qwen2.5-7B-Instruct/i2c/checkpoint-131"),
-    ("reranker_qwen14b_i2c_ids", "/cluster/work/users/jiebi/Qwen/Qwen2.5-14B-Instruct", "/cluster/work/users/jiebi/FlagEmbedding/examples/finetune/reranker/decoder_only/decoder_only_base_Qwen-Qwen2.5-14B-Instruct/i2c/checkpoint-65"),
-    ("reranker_qwen32b_i2c_ids", "/cluster/work/users/jiebi/Qwen/Qwen2.5-32B-Instruct", "/cluster/work/users/jiebi/FlagEmbedding/examples/finetune/reranker/decoder_only/decoder_only_base_Qwen-Qwen2.5-32B-Instruct/i2c/checkpoint-131"),
+    ("jiebi/IDs-mistral-7B", "mistralai/Mistral-7B-Instruct-v0.2", "jiebi/IDs-mistral-7B"),
+    ("jiebi/IDs-llama-3.1-8B", "meta-llama/Llama-3.1-8B-Instruct", "jiebi/IDs-llama-3.1-8B"),
+    ("jiebi/IDs-rank1-7bs", "jhu-clsp/rank1-7b", "jiebi/IDs-rank1-7b"),
+    ("jiebi/IDs-Qwen2.5-7B", "Qwen/Qwen2.5-7B-Instruct", "jiebi/IDs-Qwen2.5-7B"),
+    ("jiebi/IDs-Qwen2.5-14B", "Qwen/Qwen2.5-14B-Instruct", "jiebi/IDs-Qwen2.5-14B"),
 }
 
 # Dynamically create models
