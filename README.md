@@ -2,8 +2,8 @@
 
 This repository accompanies two related papers:
 
-- Primary paper: [Linking Rationale to Decision on Internet Standards: A Retrieval-Based Approach Using Synthetic Data](#cite-linking-rationale-to-decision-on-internet-standards-a-retrieval-based-approach-using-synthetic-data)
-- Related paper: [Beyond the Rules: Understanding the Design Logic of Internet Standards](#cite-beyond-the-rules-understanding-the-design-logic-of-internet-standards)
+- LREC paper: [Linking Rationale to Decision on Internet Standards: A Retrieval-Based Approach Using Synthetic Data](http://www.lrec-conf.org/proceedings/lrec2026/pdf/2026.lrec2026-1.568.pdf)
+- SemTech paper: [Beyond the Rules: Understanding the Design Logic of Internet Standards](https://dl.acm.org/doi/pdf/10.1145/3774905.3795082)
 
 ## Citation
 
