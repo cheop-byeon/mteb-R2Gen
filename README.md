@@ -1,8 +1,50 @@
 # Repository Overview
 
-This repository accompanies our paper 
-**“Linking Rationale to Decision on Internet Standards: A Retrieval-Based Approach Using Synthetic Data.”**
-**“Beyond the Rules: Understanding the Design Logic of Internet Standards.”**  
+This repository accompanies two related papers:
+
+- Primary paper: [Linking Rationale to Decision on Internet Standards: A Retrieval-Based Approach Using Synthetic Data](#cite-linking-rationale-to-decision-on-internet-standards-a-retrieval-based-approach-using-synthetic-data)
+- Related paper: [Beyond the Rules: Understanding the Design Logic of Internet Standards](#cite-beyond-the-rules-understanding-the-design-logic-of-internet-standards)
+
+## Citation
+
+### Cite Linking Rationale to Decision on Internet Standards
+
+```bibtex
+@inproceedings{bian-etal-2026-linking,
+  title = {Linking Rationale to Decision on Internet Standards: A Retrieval-Based Approach Using Synthetic Data},
+  author = {Bian, Jie and Welzl, Michael},
+  booktitle = {Proceedings of the Fifteenth Language Resources and Evaluation Conference (LREC 2026)},
+  month = {May},
+  year = {2026},
+  pages = {7149--7162},
+  address = {Palma, Mallorca, Spain},
+  publisher = {European Language Resources Association (ELRA)},
+  editor = {Piperidis, Stelios and Bel, Núria and van den Heuvel, Henk and Ide, Nancy and Krek, Simon and Toral, Antonio},
+  doi = {10.63317/3szh4omfcsxb}
+}
+```
+
+### Cite Beyond the Rules
+
+```bibtex
+@inproceedings{bian-etal-2026-beyond,
+  author = {Bian, Jie and Welzl, Michael and Arefyev, Nikolay},
+  title = {Beyond the Rules: Understanding the Design Logic of Internet Standards},
+  year = {2026},
+  isbn = {9798400723087},
+  publisher = {Association for Computing Machinery},
+  address = {New York, NY, USA},
+  url = {https://doi.org/10.1145/3774905.3795082},
+  doi = {10.1145/3774905.3795082},
+  booktitle = {Companion Proceedings of the ACM Web Conference 2026},
+  pages = {1025--1032},
+  numpages = {8},
+  keywords = {ietf, rfc, email archive, information retrieval, retrieve augmented generation},
+  location = {United Arab Emirates},
+  series = {WWW Companion '26}
+}
+```
+
 It includes scripts, models, and resources used throughout our studies.
 
 ## Repository Structure
