@@ -2,64 +2,52 @@
 
 This repository accompanies two related papers:
 
-- LREC paper: [Linking Rationale to Decision on Internet Standards: A Retrieval-Based Approach Using Synthetic Data](http://www.lrec-conf.org/proceedings/lrec2026/pdf/2026.lrec2026-1.568.pdf)
-- SemTech paper: [Beyond the Rules: Understanding the Design Logic of Internet Standards](https://dl.acm.org/doi/pdf/10.1145/3774905.3795082)
+- LREC paper: [Linking Rationale to Decision on Internet Standards: A Retrieval-Based Approach Using Synthetic Data](https://doi.org/10.63317/3szh4omfcsxb)
+- SemTech paper: [Beyond the Rules: Understanding the Design Logic of Internet Standards](https://doi.org/10.1145/3774905.3795082)
 
 ## Citation
 
-### Cite Linking Rationale to Decision on Internet Standards
+### Linking Rationale to Decision on Internet Standards
 
 ```bibtex
 @inproceedings{bian-etal-2026-linking,
   title = {Linking Rationale to Decision on Internet Standards: A Retrieval-Based Approach Using Synthetic Data},
   author = {Bian, Jie and Welzl, Michael},
   booktitle = {Proceedings of the Fifteenth Language Resources and Evaluation Conference (LREC 2026)},
-  month = {May},
   year = {2026},
   pages = {7149--7162},
-  address = {Palma, Mallorca, Spain},
-  publisher = {European Language Resources Association (ELRA)},
-  editor = {Piperidis, Stelios and Bel, Núria and van den Heuvel, Henk and Ide, Nancy and Krek, Simon and Toral, Antonio},
   doi = {10.63317/3szh4omfcsxb}
 }
 ```
 
-### Cite Beyond the Rules
+### Beyond the Rules
 
 ```bibtex
-@inproceedings{bian-etal-2026-beyond,
-  author = {Bian, Jie and Welzl, Michael and Arefyev, Nikolay},
-  title = {Beyond the Rules: Understanding the Design Logic of Internet Standards},
-  year = {2026},
-  isbn = {9798400723087},
-  publisher = {Association for Computing Machinery},
-  address = {New York, NY, USA},
-  url = {https://doi.org/10.1145/3774905.3795082},
-  doi = {10.1145/3774905.3795082},
-  booktitle = {Companion Proceedings of the ACM Web Conference 2026},
-  pages = {1025--1032},
-  numpages = {8},
-  keywords = {ietf, rfc, email archive, information retrieval, retrieve augmented generation},
-  location = {United Arab Emirates},
-  series = {WWW Companion '26}
+@inproceedings{bian2026beyond,
+  title={Beyond the Rules: Understanding the Design Logic of Internet Standards},
+  author={Bian, Jie and Welzl, Michael and Arefyev, Nikolay},
+  booktitle={Companion Proceedings of the ACM Web Conference 2026},
+  year={2026},
+  pages={1025--1032},
+  doi={10.1145/3774905.3795082}
 }
 ```
 
-It includes scripts, models, and resources used throughout our studies.
+This repository includes the scripts, models, and resources used throughout our studies.
 
 ## Repository Structure
 
 The repository is organized into two main components:
 
 ### Information Retrieval (`ir/`)
-see **“Linking Rationale to Decision on Internet Standards: A Retrieval-Based Approach Using Synthetic Data.”**
+See **“Linking Rationale to Decision on Internet Standards: A Retrieval-Based Approach Using Synthetic Data.”**
 Implements retrieval-based approaches to connect rationales with technical decisions:
 - **i2c (issue/email comments to code/textual edit)**: Maps discussion threads (rationales/explanations) to decisions in standards
 
 These tasks leverage the IETF mail archives as a discussion base and RFC/Internet-Draft repositories as decision sources.
 
 ### Generation (`gen/`)
-see **“Beyond the Rules: Understanding the Design Logic of Internet Standards.”**  
+See **“Beyond the Rules: Understanding the Design Logic of Internet Standards.”**  
 Implements retrieval-based approaches to connect rationales with technical decisions:
 - **c2i (code/textual edit to issue/email comments)**: Retrieves relevant discussions for given technical decisions
 Extends the retrieval pipeline with a RAG (Retrieval-Augmented Generation) component that uses retrieved documents to generate coherent, context-aware explanations for design decisions.
@@ -73,13 +61,22 @@ This implementation adapts the MTEB benchmark framework (<https://github.com/emb
 
 ## Installation
 
+For most users (local setup):
+
+```bash
+conda create -n mteb-r2gen python=3.11 -y
+conda activate mteb-r2gen
+pip install -e .
 ```
+
+If you are using an HPC environment with EasyBuild modules:
+
+```bash
 module load Miniconda3/22.11.1-1
-export PS1=\$
 source ${EBROOTMINICONDA3}/etc/profile.d/conda.sh
 conda deactivate &>/dev/null
 echo "Conda environments: $(conda info --envs)"
-echo "EBROOTMINCONDA3: ${EBROOTMINICONDA3}"
+echo "EBROOTMINICONDA3: ${EBROOTMINICONDA3}"
 
 conda create -p path/to/conda_env python=3.11
 conda activate path/to/conda_env
@@ -88,7 +85,7 @@ pip install -e .
 
 Other packages need to be installed for RAG. Please check the package list in requirements.txt.
 
-```
+```bash
 pip install langchain-text-splitters==1.1.0
 pip install llama-index-core==0.14.8
 pip install ragas==0.4.2
@@ -125,6 +122,38 @@ https://github.com/cheop-byeon/FlagEmbedding
 ## Synthetic Data Generation
 https://github.com/cheop-byeon/synthetic-data-kit
 
+## Quick Start
+
+Run a minimal end-to-end workflow:
+
+```bash
+# 1) Install
+conda create -n mteb-r2gen python=3.11 -y
+conda activate mteb-r2gen
+pip install -e .
+
+# 2) Download datasets
+python download_CodeConvo.py
+python download_RFCAlign.py
+
+# 3) Run evaluation (HPC)
+sbatch evaluation.sh
+```
+
+If you are not on an HPC cluster, open `evaluation.sh` and run the corresponding Python command directly in your shell.
+
+## Reproducibility
+
+- Python version: `3.11` (used in the installation examples).
+- Evaluation entry point: `RFCAlign_IR_mteb.py`.
+- Dataset split/path convention: `ir/<name>/<direction>/<split>` (as used in `evaluation.sh` and `bm25.sh`).
+- Dataset revision should be checked from the source dataset page before running (for RFC-Align: https://huggingface.co/datasets/jiebi/RFCAlign).
+- Example dense-eval HPC resources (from `evaluation.sh`): `1x A100 GPU`, `32G mem-per-cpu`, `1 CPU task`, `1 hour` wall time.
+- BM25 baseline (`bm25.sh`) runs without GPU directives.
+- Result location: `results/stage1/<split>/<direction>/` with per-model prediction folders (`save_predictions=True`).
+- Current behavior overwrites prior result files (`overwrite_results=True`).
+- No explicit random seed is set in `RFCAlign_IR_mteb.py`, `evaluation.sh`, or `bm25.sh`.
+
 
 ## Evaluation
 
@@ -151,6 +180,24 @@ python download_RFCAlign.py       # Download RFC-Align dataset
 
 See [DATASET_PATH_USAGE.md](DATASET_PATH_USAGE.md) for detailed dataset download and path resolution instructions.
 
+## License
+
+This repository is released under the Apache License 2.0. See [LICENSE](LICENSE).
+
+Note: Some datasets, base models, and third-party assets referenced by this repository may have their own licenses and usage terms. Please check the corresponding source pages before reuse.
+
+## Contributing
+
+Contributions are welcome.
+
+- Open an issue first to discuss bug reports, feature requests, or larger changes.
+- Submit focused pull requests with a clear description of what changed and why.
+- For evaluation-related updates, include the command you ran and the relevant output path.
+
+## Contact
+
+For questions about code, datasets, or models, please open a GitHub issue in this repository.
+
 ## Acknowledgements
 
 We acknowledge the MTEB benchmark framework developed by Muennighoff et al. (2022):
@@ -161,7 +208,7 @@ We acknowledge the MTEB benchmark framework developed by Muennighoff et al. (202
   title = {MTEB: Massive Text Embedding Benchmark},
   publisher = {arXiv},
   journal={arXiv preprint arXiv:2210.07316},
-  year = {2022}
+  year = {2022},
   url = {https://arxiv.org/abs/2210.07316},
   doi = {10.48550/ARXIV.2210.07316},
 }
