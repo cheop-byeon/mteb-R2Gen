@@ -98,6 +98,7 @@ class CustomRepLLaMAWrapper(Wrapper):
 
     def create_batch_dict(self, tokenizer, input_texts):
         """Create padded batch dictionary from input texts."""
+        
         batch_dict = tokenizer(
             input_texts,
             max_length=self.model.config.max_length - 1,
@@ -106,8 +107,9 @@ class CustomRepLLaMAWrapper(Wrapper):
             padding=False,
             truncation=True,
         )
+        eos_id = tokenizer.eos_token_id
         batch_dict["input_ids"] = [
-            input_ids + [tokenizer.eos_token_id]
+            input_ids if input_ids and input_ids[-1] == eos_id else input_ids + [eos_id]
             for input_ids in batch_dict["input_ids"]
         ]
         return tokenizer.pad(
